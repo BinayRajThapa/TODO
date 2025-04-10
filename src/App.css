@@ -208,6 +208,55 @@
   text-overflow: ellipsis;
 }
 
+/* Selection styles */
+.task-checkbox {
+  margin-right: 10px;
+  cursor: pointer;
+}
+
+.task_card.selected {
+  background-color: #f0f8ff;
+  border-left: 3px solid #6457f9;
+}
+
+.column-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.select-all-btn {
+  background: #6457f9;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* Add these styles */
+.bulk-actions {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.delete-selected-btn {
+  background: #ff4d4f;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.delete-selected-btn:hover {
+  background: #f5222d;
+  transform: translateY(-1px);
+}
+
 /* Responsive Design */
 @media (max-width: 1200px) {
   .columns_container {
@@ -280,6 +329,29 @@
     width: 100%;
   }
 }
+
+.bulk-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  padding: 10px 20px;
+  margin-bottom: 10px;
+}
+
+.bulk-delete-btn {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s ease;
+}
+
+.bulk-delete-btn:hover {
+  background-color: #c82333;
+}
+
 
 @media (max-width: 576px) {
   .app {

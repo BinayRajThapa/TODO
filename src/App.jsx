@@ -30,6 +30,17 @@ const App = () => {
   const [originalText, setOriginalText] = useState("");
   const [editedText, setEditedText] = useState("");
   const [authError, setAuthError] = useState("");
+  const [selectedTasks, setSelectedTasks] = useState([]);
+  const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false);
+
+
+  const toggleTaskSelection = (taskId) => {
+    setSelectedTasks(prev =>
+      prev.includes(taskId)
+        ? prev.filter(id => id !== taskId)
+        : [...prev, taskId]
+    );
+  };
 
   useEffect(() => {
     const initializeAuth = async () => {
@@ -75,30 +86,38 @@ const App = () => {
   };
 
   const handleSignup = async (formData) => {
+    console.log("🚨 handleSignup called", formData);
+  
     try {
-      setAuthError("");
       const response = await authService.signup(
         formData.name,
         formData.email,
         formData.password
       );
-
+  
       if (response.success) {
         dispatch(login(response.user));
-        navigate("/");
+        return { success: true };
       } else {
-        setAuthError(response.message || "Signup failed");
+        setAuthError(response.message);
+        return { success: false };
       }
-    } catch (error) {
-      setAuthError(error.message || "Signup error");
+    } catch (err) {
+      console.error("Signup error:", err);
+      setAuthError("Something went wrong during signup.");
+      return { success: false };
     }
   };
-
+  
+  
   // Task operation handlers
-  const handleDeleteClick = (index) => {
-    setTaskToDelete(index);
+  const handleDeleteClick = (id) => {
+    const taskIndex = tasks.findIndex(task => task.id === id);
+    if (taskIndex === -1) return toast.error("Task not found!");
+    setTaskToDelete(taskIndex);
     setShowDeleteConfirm(true);
   };
+  
 
   const confirmDelete = () => {
     dispatch(deleteTask(taskToDelete));
@@ -106,12 +125,23 @@ const App = () => {
     toast.success("Task deleted!")
   };
 
-  const handleEditClick = (index) => {
-    setTaskToEdit(index);
-    setOriginalText(tasks[index].task);
-    setEditedText(tasks[index].task);
+  const deleteSelectedTasks = () => {
+    const updatedTasks = tasks.filter(task => !selectedTasks.includes(task.id));
+    dispatch(updateTasks(updatedTasks));
+    setSelectedTasks([]);
+    toast.success(`Deleted ${selectedTasks.length} task(s)`);
+  };
+
+  const handleEditClick = (id) => {
+    const taskIndex = tasks.findIndex(task => task.id === id);
+    if (taskIndex === -1) return toast.error("Task not found!");
+  
+    setTaskToEdit(taskIndex);
+    setOriginalText(tasks[taskIndex].task);
+    setEditedText(tasks[taskIndex].task);
     setShowEditConfirm(true);
   };
+  
 
   const confirmEdit = () => {
     const updatedTasks = [...tasks];
@@ -124,21 +154,49 @@ const App = () => {
     toast.success("Task updated!");
   };
 
+  const handleSelectAll = (status) => {
+    const columnTaskIds = tasks
+      .filter(task => task.status === status)
+      .map(task => task.id);
+  
+    const allSelected = columnTaskIds.every(id => selectedTasks.includes(id));
+  
+    setSelectedTasks(prev =>
+      allSelected
+        ? prev.filter(id => !columnTaskIds.includes(id))
+        : [...new Set([...prev, ...columnTaskIds])]
+    );
+  
+    const statusName = {
+      todo: "To Do",
+      doing: "In Progress",
+      done: "Completed"
+    };
+  
+    toast.success(
+      allSelected 
+        ? `Unselected all from "${statusName[status]}"`
+        : `Selected all from "${statusName[status]}"`
+    );
+  };
+  
+  
+
   // Drag-and-drop handler
   const onDrop = (status, position) => {
     if (activeCard === null) return;
-
-    const taskToMove = tasks[activeCard];
-    const updatedTasks = tasks.filter((_, index) => index !== activeCard);
-    
-    updatedTasks.splice(position, 0, {
+  
+    const taskToMove = tasks.find(task => task.id === activeCard);
+    const filteredTasks = tasks.filter(task => task.id !== activeCard);
+  
+    filteredTasks.splice(position, 0, {
       ...taskToMove,
       status: status
     });
-
-    dispatch(updateTasks(updatedTasks));
+  
+    dispatch(updateTasks(filteredTasks));
     setActiveCard(null);
-
+  
     const statusName = {
       todo: "To Do",
       doing: "In Progress",
@@ -147,6 +205,7 @@ const App = () => {
   
     toast.success(`Task moved to "${statusName[status]}"`);
   };
+  
 
   return (
     <div className="app">
@@ -165,18 +224,18 @@ const App = () => {
           )
         } />
         
-        <Route path="/signup" element={
-          !isAuthenticated ? (
+        <Route 
+          path="/signup" 
+          element={
             <AuthForm 
               type="signup" 
               onSubmit={handleSignup} 
-              error={authError}
-              clearError={() => setAuthError("")}
+              error={authError} 
+              clearError={() => setAuthError("")} 
             />
-          ) : (
-            <Navigate to="/" replace />
-          )
-        } />
+          } 
+        />
+
         
         <Route path="/" element={
           isAuthenticated ? (
@@ -186,7 +245,23 @@ const App = () => {
               </div>
 
               <TaskForm />
-              
+
+              <div className="bulk-toolbar">
+                <button
+                  className="bulk-delete-btn"
+                  onClick={() => {
+                    if (selectedTasks.length === 0) {
+                      toast.error("No tasks selected");
+                      return;
+                    }
+                    setShowBulkDeleteConfirm(true);
+                  }}
+                >
+                  Delete Selected
+                </button>
+              </div>
+
+                            
               <main className="app_main">
                 <div className="columns_container">
                   <TaskColumn
@@ -197,6 +272,9 @@ const App = () => {
                     onDrop={onDrop}
                     onDelete={handleDeleteClick}
                     onEdit={handleEditClick}
+                    selectedTasks={selectedTasks}
+                    onSelectAll={handleSelectAll}
+                    onToggleSelect={toggleTaskSelection}
                   />
                   <TaskColumn
                     title="In Progress Tasks"
@@ -206,6 +284,9 @@ const App = () => {
                     onDrop={onDrop}
                     onDelete={handleDeleteClick}
                     onEdit={handleEditClick}
+                    selectedTasks={selectedTasks}
+                    onSelectAll={handleSelectAll}
+                    onToggleSelect={toggleTaskSelection}
                   />
                   <TaskColumn
                     title="Completed Tasks"
@@ -215,17 +296,43 @@ const App = () => {
                     onDrop={onDrop}
                     onDelete={handleDeleteClick}
                     onEdit={handleEditClick}
+                    selectedTasks={selectedTasks}
+                    onSelectAll={handleSelectAll}
+                    onToggleSelect={toggleTaskSelection}
                   />
                 </div>
+
+                {/*{selectedTasks.length > 0 && (
+                /<div className="bulk-actions">
+                  <button 
+                    onClick={deleteSelectedTasks}
+                    className="delete-selected-btn"
+                  >
+                    Delete Selected ({selectedTasks.length})
+                  </button>
+                </div>*/}
+              
               </main>
 
               {/* Delete Confirmation Modal */}
-              <DeleteModal 
+              <DeleteModal
                 show={showDeleteConfirm}
                 onHide={() => setShowDeleteConfirm(false)}
                 onConfirm={confirmDelete}
                 taskIndex={taskToDelete}
               />
+
+              <DeleteModal
+                show={showBulkDeleteConfirm}
+                onHide={() => setShowBulkDeleteConfirm(false)}
+                onConfirm={() => {
+                  deleteSelectedTasks();
+                  setShowBulkDeleteConfirm(false);
+                }}
+                customText={`Are you sure you want to delete ${selectedTasks.length} selected task(s)? This action cannot be undone.`}
+                customTitle="Delete Selected Tasks"
+              />
+
 
 
               {/* Edit Confirmation Modal */}

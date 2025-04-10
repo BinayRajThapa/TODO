@@ -212,7 +212,7 @@ const AuthForm = ({ type, onSubmit, error, clearError }) => {
         <div className="auth-footer">
           {type === "login" ? (
             <>
-             {/*<p>Signup for new users <span onClick={() => navigate("/signup")}>Sign up</span></p>*/}
+             <p>Don't have an account? <span onClick={() => navigate("/signup")}>Sign up</span></p>
             </>
           ) : (
             <p>Already have an account? <span onClick={() => navigate("/login")}>Login</span></p>

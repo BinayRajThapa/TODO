@@ -63,6 +63,47 @@
     font-size: 12px;
     color: white;
   }
+
+
+  .task-checkbox {
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border: 2px solid #6457f9;
+    border-radius: 4px;
+    margin-right: 10px;
+    cursor: pointer;
+    position: relative;
+    background-color: white;
+    display: inline-block;
+    vertical-align: middle;
+    transition: all 0.2s ease;
+  }
+
+.task-checkbox:checked {
+  background-color: #6457f9;
+  border-color: #6457f9;
+}
+
+.task-checkbox:checked::after {
+  content: "✓";
+  position: absolute;
+  color: white;
+  font-size: 12px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+
+
+.task-checkbox:hover {
+  border-color: #867dfd;
+}
+
+  .task_card.dragging {
+    opacity: 0.5;
+  }
   
   @media (max-width: 576px) {
     .task_card {

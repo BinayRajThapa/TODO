@@ -21,3 +21,24 @@
   [data-status="done"] .task_column_heading {
     background: #67c23a;
   }
+
+  .column-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .select-all-btn {
+    background: transparent;
+    border: 1px solid #6457f9;
+    color: #6457f9;
+    padding: 2px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+  }
+  
+  .select-all-btn:hover {
+    background: #6457f9;
+    color: white;
+  }
