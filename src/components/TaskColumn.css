@@ -1,0 +1,23 @@
+.task_column {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 15px;
+  }
+  
+  .task_column_heading {
+    color: #fff;
+    background: #6457f9;
+    padding: 12px;
+    border-radius: 6px;
+    text-align: center;
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+  }
+  
+  [data-status="doing"] .task_column_heading {
+    background: #e6a23c;
+  }
+  
+  [data-status="done"] .task_column_heading {
+    background: #67c23a;
+  }
