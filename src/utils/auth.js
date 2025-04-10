@@ -1,24 +1,26 @@
-export const authService = {
-  // Mock user database
-  mockUsers: [
-    {
-      email: "test@example.com",
-      password: "test1234",
-      name: "Test User",
-      themeColor: "#6457f9",
-      id: 1
-    },
-    {
-      email: "demo@example.com",
-      password: "demo1234",
-      name: "Demo User",
-      themeColor: "#4CAF50",
-      id: 2
-    }
-  ],
+// utils/auth.js
+let mockUsers = JSON.parse(localStorage.getItem('mockUsers')) || [
+  {
+    email: "test@example.com",
+    password: "test1234",
+    name: "Test User",
+    themeColor: "#6457f9",
+    id: 1
+  },
+  {
+    email: "demo@example.com",
+    password: "demo1234",
+    name: "Demo User",
+    themeColor: "#4CAF50",
+    id: 2
+  }
+];
 
-  // LOGIN FUNCTION
-  login: async (email, password) => {
+export const authService = {
+  mockUsers,
+
+   // LOGIN FUNCTION
+   login: async (email, password) => {
     return new Promise((resolve) => {
       setTimeout(() => {
         const user = authService.mockUsers.find(
@@ -45,48 +47,45 @@ export const authService = {
     });
   },
 
-  // SIGNUP FUNCTION
+
   signup: async (name, email, password) => {
     return new Promise((resolve) => {
       setTimeout(() => {
-        const userExists = authService.mockUsers.some(u => u.email === email);
-
+        const userExists = mockUsers.some(u => u.email === email);
         if (userExists) {
-          resolve({
-            success: false,
-            message: "Email already exists"
-          });
+          resolve({ success: false, message: "Email already exists" });
         } else {
           const newUser = {
             email,
-            password, // 🔒 Never store plain passwords in real apps
+            password,
             name,
-            themeColor: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
+            themeColor: `#${Math.floor(Math.random()*16777215).toString(16)}`,
             id: Date.now()
           };
-
-          authService.mockUsers.push(newUser);
-
-          resolve({
-            success: true,
+          mockUsers.push(newUser);
+          localStorage.setItem('mockUsers', JSON.stringify(mockUsers));
+          
+          // Return the user data without password
+          resolve({ 
+            success: true, 
             user: {
               email: newUser.email,
               name: newUser.name,
               id: newUser.id,
               themeColor: newUser.themeColor
-            }
+            } 
           });
         }
-      }, 1000);
+      }, 500);
     });
   },
 
-  // LOGOUT FUNCTION
-  logout: async () => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({ success: true });
-      }, 500);
-    });
-  }
+ // LOGOUT FUNCTION
+ logout: async () => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve({ success: true });
+    }, 500);
+  });
+}
 };

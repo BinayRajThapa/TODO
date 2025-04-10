@@ -44,6 +44,10 @@ const App = () => {
 
   useEffect(() => {
     const initializeAuth = async () => {
+      if (['/login', '/signup'].includes(window.location.pathname)) {
+        return;
+      }
+    
       const userData = localStorage.getItem('user');
       if (userData) {
         try {
@@ -57,10 +61,10 @@ const App = () => {
         } catch (e) {
           localStorage.removeItem('user');
         }
-      }
-      
-      if (!userData && window.location.pathname !== '/login') {
-        navigate("/login");
+      } else {
+        if (!['/login', '/signup'].includes(window.location.pathname)) {
+          navigate("/login");
+        }
       }
     };
 
@@ -86,9 +90,8 @@ const App = () => {
   };
 
   const handleSignup = async (formData) => {
-    console.log("🚨 handleSignup called", formData);
-  
     try {
+      setAuthError("");
       const response = await authService.signup(
         formData.name,
         formData.email,
@@ -96,19 +99,25 @@ const App = () => {
       );
   
       if (response.success) {
-        dispatch(login(response.user));
-        return { success: true };
+        const userData = {
+          email: response.user.email,
+          name: response.user.name,
+          id: response.user.id,
+          themeColor: response.user.themeColor
+        };
+        dispatch(login(userData));
+        toast.success(`Welcome ${response.user.name}!`);
+        navigate("/");
       } else {
-        setAuthError(response.message);
-        return { success: false };
+        setAuthError(response.message || "Signup failed");
+        toast.error(response.message || "Signup failed");
       }
-    } catch (err) {
-      console.error("Signup error:", err);
-      setAuthError("Something went wrong during signup.");
-      return { success: false };
+    } catch (error) {
+      console.error("Signup error:", error);
+      setAuthError("Signup failed. Please try again.");
+      toast.error("Signup failed. Please try again.");
     }
   };
-  
   
   // Task operation handlers
   const handleDeleteClick = (id) => {
@@ -224,17 +233,18 @@ const App = () => {
           )
         } />
         
-        <Route 
-          path="/signup" 
-          element={
+        <Route path="/signup" element={
+          !isAuthenticated ? (
             <AuthForm 
               type="signup" 
               onSubmit={handleSignup} 
-              error={authError} 
-              clearError={() => setAuthError("")} 
+              error={authError}
+              clearError={() => setAuthError("")}
             />
-          } 
-        />
+          ) : (
+            <Navigate to="/" replace />
+          )
+        }/>
 
         
         <Route path="/" element={

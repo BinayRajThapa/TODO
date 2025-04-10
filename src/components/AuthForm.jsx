@@ -81,37 +81,35 @@ const AuthForm = ({ type, onSubmit, error, clearError }) => {
     return Object.keys(errors).length === 0;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    console.log("Form submitted");
-    if (!validateForm()) return;
-    
-    setIsLoading(true);
-    clearError?.();
-    
-    try {
-      const submitData = type === "login" 
-        ? { email: formData.email, password: formData.password }
-        : { 
-            name: formData.name, 
-            email: formData.email, 
-            password: formData.password 
-          };
-      
-      await onSubmit(submitData);
-    } catch (err) {
-      console.error("Form submission error:", err);
-      const message = err.message || "An error occurred during submission";
-      toast.error(message);
-      setFormErrors({
-        ...formErrors,
-        form: message
-      });
 
-    } finally {
-      setIsLoading(false);
-    }
-  };
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  if (!validateForm()) return;
+  
+  setIsLoading(true);
+  clearError?.();
+
+  try {
+    const submitData = type === "login" 
+      ? { email: formData.email, password: formData.password }
+      : { 
+          name: formData.name,
+          email: formData.email,
+          password: formData.password 
+        };
+    
+    console.log("Submitting:", submitData); 
+    
+    const response = await onSubmit(submitData);
+    console.log("Response:", response); 
+    
+  } catch (err) {
+    console.error("Auth error:", err); 
+    setFormErrors({ ...formErrors, form: err.message || "An error occurred" });
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   return (
     <div className="auth-container">
